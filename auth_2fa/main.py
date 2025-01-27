@@ -11,7 +11,7 @@ def load_db():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS user(
+    CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
         password TEXT NOT NULL,
@@ -29,7 +29,12 @@ def save_user(username, password, secret):
     ''', (username, password, secret))
     conn.commit()
     conn.close()
-    
+
+#Endpoint simples para garantir que o Flask esta funcionando    
+@app.route('/')
+def home():
+    return "Flask is working!"
+
 #Endpoint para registrar um usuário
 @app.route('/register', methods=['POST'])
 def register_user():
@@ -38,7 +43,7 @@ def register_user():
     password = data.get('password')
 
     if not username or not password:
-        return jsoninfy({"error":"Username and password are required"}), 400
+        return jsonify({"error":"Username and password are required"}), 400
     
     #Gerar chave 2FA
     totp = pyotp.TOTP(pyotp.random_base32())
@@ -50,9 +55,11 @@ def register_user():
     qr = qrcode.make(uri)
     qr.save(f'{username}_qrcode.png')
 
-    return jsonify({message: "User registered successfully", "qrcode": f'{username}_qrcode.png'}), 201
+    return jsonify({"message": "User registered successfully", "qrcode": f'{username}_qrcode.png'}), 201
+
+    
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
 
 
